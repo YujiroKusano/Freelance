@@ -8,179 +8,34 @@ datasource db {
 }
 
 model User {
-  id               Int                       @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   name             String
-  email            String                    @unique
+  email            String           @unique
   password         String
   role             String
-  isAdmin          Boolean                   @default(false)
+  isAdmin          Boolean          @default(false)
+  isSuspended      Boolean          @default(false)
   bio              String?
-  emailVerified    Boolean                   @default(false)
+  emailVerified    Boolean          @default(false)
   twoFASecret      String?
   stripeCustomerId String?
-  createdAt        DateTime                  @default(now())
+  createdAt        DateTime         @default(now())
 
-  projects         Project[]                 @relation("ClientProjects")
-  applications     Application[]             @relation("FreelancerApplications")
-  messages         Message[]                 @relation("UserMessages")
-  favorites        Favorite[]
-  reviews          Review[]
-  notifications    Notification[]
-  attachments      Attachment[]
-  activityLogs     ActivityLog[]
-  contacts         Contact[]
-  announcements    Announcement[]
-  loginLogs        LoginLog[]
-  passwordResetTokens PasswordResetToken[]
-  emailVerificationTokens EmailVerificationToken[]
-}
-
-model EmailVerificationToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model PasswordResetToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model LoginLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  ip        String
-  userAgent String
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Announcement {
-  id        Int      @id @default(autoincrement())
-  title     String
-  message   String
-  target    String    // 'all' or 'user'
-  userId    Int?
-  createdAt DateTime @default(now())
-
-  user      User?    @relation(fields: [userId], references: [id])
-}
-
-model Contact {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  subject   String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model ActivityLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  action    String
-  metadata  String?
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Attachment {
-  id         Int      @id @default(autoincrement())
-  filename   String
-  url        String
-  projectId  Int
-  uploadedBy Int
-  createdAt  DateTime @default(now())
-
-  project    Project  @relation(fields: [projectId], references: [id])
-  user       User     @relation(fields: [uploadedBy], references: [id])
-}
-
-model Payment {
-  id            Int       @id @default(autoincrement())
-  applicationId Int
-  amount        Int
-  status        String    @default("pending")
-  createdAt     DateTime  @default(now())
-
-  application   Application @relation(fields: [applicationId], references: [id])
-}
-
-model Notification {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  type       String
-  content    String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  user       User     @relation(fields: [userId], references: [id])
-}
-
-model Review {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  projectId  Int
-  rating     Int
-  comment    String
-  createdAt  DateTime @default(now())
-
-  user       User     @relation(fields: [userId], references: [id])
-  project    Project  @relation(fields: [projectId], references: [id])
-
-  @@unique([userId, projectId])
-}
-
-model Favorite {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  projectId  Int
-  createdAt  DateTime @default(now())
-
-  user       User     @relation(fields: [userId], references: [id])
-  project    Project  @relation(fields: [projectId], references: [id])
-
-  @@unique([userId, projectId])
-}
-
-model Message {
-  id            Int       @id @default(autoincrement())
-  content       String
-  senderId      Int
-  applicationId Int
-  createdAt     DateTime  @default(now())
-
-  sender        User        @relation("UserMessages", fields: [senderId], references: [id])
-  application   Application @relation(fields: [applicationId], references: [id])
-}
-
-model Application {
-  id          Int        @id @default(autoincrement())
-  projectId   Int
-  userId      Int
-  status      String     @default("applied")
-  createdAt   DateTime   @default(now())
-  approvedAt  DateTime?
-  completedAt DateTime?
-  canceledAt  DateTime?
-
-  user        User       @relation("FreelancerApplications", fields: [userId], references: [id])
-  project     Project    @relation(fields: [projectId], references: [id])
-  messages    Message[]
-  payments    Payment[]
+  projects                 Project[]                 @relation("ClientProjects")
+  applications             Application[]             @relation("FreelancerApplications")
+  messages                 Message[]                 @relation("UserMessages")
+  favorites                Favorite[]
+  reviews                  Review[]
+  notifications            Notification[]
+  attachments              Attachment[]
+  activityLogs             ActivityLog[]
+  contacts                 Contact[]
+  announcements            Announcement[]
+  loginLogs                LoginLog[]
+  passwordResetTokens      PasswordResetToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  reportsMade              Report[]                 @relation("Reporter")
+  reportsReceived          Report[]                 @relation("Reported")
 }
 
 model Project {
@@ -199,8 +54,168 @@ model Project {
   attachments  Attachment[]
 }
 
+model Application {
+  id          Int        @id @default(autoincrement())
+  projectId   Int
+  userId      Int
+  status      String     @default("applied")
+  createdAt   DateTime   @default(now())
+  approvedAt  DateTime?
+  completedAt DateTime?
+  canceledAt  DateTime?
+
+  user        User       @relation("FreelancerApplications", fields: [userId], references: [id])
+  project     Project    @relation(fields: [projectId], references: [id])
+  messages    Message[]
+  payments    Payment[]
+}
+
 model Category {
   id        Int       @id @default(autoincrement())
   name      String    @unique
   projects  Project[]
+}
+
+model Message {
+  id            Int       @id @default(autoincrement())
+  content       String
+  senderId      Int
+  applicationId Int
+  createdAt     DateTime  @default(now())
+
+  sender        User        @relation("UserMessages", fields: [senderId], references: [id])
+  application   Application @relation(fields: [applicationId], references: [id])
+}
+
+model Favorite {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  projectId  Int
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  project    Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  projectId  Int
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  project    Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  type       String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id            Int       @id @default(autoincrement())
+  applicationId Int
+  amount        Int
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now())
+
+  application   Application @relation(fields: [applicationId], references: [id])
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  url        String
+  projectId  Int
+  uploadedBy Int
+  createdAt  DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id])
+  user       User     @relation(fields: [uploadedBy], references: [id])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  target    String
+  userId    Int?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  ip        String
+  userAgent String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model EmailVerificationToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  reporterId Int
+  reportedId Int
+  reason     String
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+
+  reporter   User     @relation("Reporter", fields: [reporterId], references: [id])
+  reported   User     @relation("Reported", fields: [reportedId], references: [id])
 }
